@@ -1,0 +1,29 @@
+name: Weekly Website QA Scan
+
+on:
+  schedule:
+    # Every Monday at 09:00 UTC. Adjust for your timezone as needed.
+    - cron: "0 9 * * 1"
+  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run weekly scan
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_AUDIT_DB_ID: ${{ secrets.NOTION_AUDIT_DB_ID }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: python src/main.py
